@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Ma Semaine</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --accent:#5B7FA6;--accent-dk:#4A6E95;--accent-lt:#EBF0F7;
+  --bg:#F5F5F0;--surf:#FFFFFF;--text:#2D2D2D;--muted:#7A7A7A;
+  --border:#E5E5E0;--done:#BCBCBC;
+  --hd:58px;--ft:66px;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'Nunito',system-ui,sans-serif;color:var(--text)}
+.app{display:flex;flex-direction:column;height:100dvh;height:100vh;max-width:480px;margin:0 auto;background:var(--bg)}
+
+/* HEADER */
+.header{height:var(--hd);background:var(--surf);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1rem;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.07);z-index:10}
+.app-title{font-size:1.2rem;font-weight:800;color:var(--accent);letter-spacing:-.02em}
+.header-r{display:flex;align-items:center;gap:.5rem}
+.mode-badge{font-size:.75rem;font-weight:700;background:var(--accent-lt);color:var(--accent);padding:.28rem .7rem;border-radius:100px;white-space:nowrap}
+.btn-mode{font-size:.72rem;font-weight:700;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:6px;padding:.28rem .6rem;cursor:pointer;min-height:32px;font-family:inherit;transition:all .15s}
+.btn-mode:active{opacity:.7}
+.btn-dark{width:32px;height:32px;background:transparent;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.95rem;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.btn-dark:active{transform:scale(.9)}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:.875rem;display:flex;flex-direction:column;gap:.875rem}
+
+/* DAY NAV */
+.day-nav{display:flex;align-items:center;gap:.625rem}
+.btn-nav{width:44px;height:44px;min-width:44px;background:var(--surf);border:1.5px solid var(--border);border-radius:50%;font-size:1.5rem;line-height:1;color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:all .15s;user-select:none}
+.btn-nav:active{background:var(--accent-lt);transform:scale(.93)}
+.day-info{flex:1;text-align:center}
+.day-name{font-size:1.55rem;font-weight:800;color:var(--text);line-height:1}
+.day-sub{display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.15rem;flex-wrap:wrap}
+.day-date{font-size:.75rem;color:var(--muted);font-weight:600}
+.today-chip{font-size:.62rem;font-weight:800;background:var(--accent);color:#fff;padding:.1rem .4rem;border-radius:100px}
+.day-prog{font-size:.72rem;font-weight:700;color:var(--accent);margin-top:.15rem}
+
+/* TASK LIST */
+.task-list{list-style:none;display:flex;flex-direction:column;gap:.4rem}
+.task-item{display:flex;align-items:center;gap:.6rem;background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:.65rem .625rem;transition:opacity .2s;cursor:pointer}
+.task-item.is-opt{opacity:.6}
+.task-item.is-done{opacity:.38}
+.task-cb{width:24px;height:24px;min-width:24px;border:2px solid var(--border);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;color:#fff;transition:all .15s;flex-shrink:0}
+.task-cb.on{background:var(--accent);border-color:var(--accent)}
+.task-cb.on::after{content:'✓'}
+.task-body{flex:1;min-width:0;pointer-events:none}
+.task-name{font-size:.875rem;font-weight:700;color:var(--text);line-height:1.3}
+.task-item.is-done .task-name{text-decoration:line-through;color:var(--done)}
+.task-meta{display:flex;align-items:center;gap:.3rem;margin-top:.2rem;flex-wrap:wrap}
+.task-dur{font-size:.68rem;color:var(--muted);font-weight:600}
+.task-slot{font-size:.66rem;color:var(--muted)}
+.freq-badge{font-size:.62rem;font-weight:700;padding:.12rem .38rem;border-radius:100px}
+.f-daily{background:#E8EEF7;color:#3A6699}
+.f-weekly{background:#FEF3DC;color:#9A6C0A}
+.f-monthly{background:#E8F5EB;color:#2E7D32}
+.f-optional{background:#F0F0F0;color:#777}
+.task-item.is-done .task-meta{opacity:.5}
+.btn-del{width:32px;height:32px;min-width:32px;background:transparent;border:none;border-radius:6px;color:var(--muted);cursor:pointer;font-size:.82rem;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:all .15s;pointer-events:all}
+.btn-del:hover{background:#FEE2E2;color:#DC2626}
+.day-empty{text-align:center;padding:2.5rem 1rem;color:var(--muted);font-size:.85rem;font-weight:600}
+
+/* ADD FORM */
+.add-form{background:var(--surf);border:1.5px solid var(--border);border-radius:12px;padding:.875rem;display:flex;flex-direction:column;gap:.5rem}
+.task-inp{width:100%;min-height:44px;padding:.6rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;font-family:inherit;color:var(--text);background:var(--bg);transition:border-color .15s}
+.task-inp:focus{outline:none;border-color:var(--accent)}
+.task-inp::placeholder{color:var(--muted)}
+.form-row{display:flex;gap:.4rem}
+.sel{flex:1;min-width:0;min-height:44px;padding:.5rem .3rem;border:1.5px solid var(--border);border-radius:8px;font-size:.76rem;font-family:inherit;color:var(--text);background:var(--bg);cursor:pointer;transition:border-color .15s}
+.sel:focus{outline:none;border-color:var(--accent)}
+.btn-add{min-height:44px;padding:0 1rem;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:.875rem;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;transition:background .15s}
+.btn-add:active{background:var(--accent-dk);transform:scale(.97)}
+
+/* FOOTER */
+.footer{height:var(--ft);background:var(--surf);border-top:1px solid var(--border);padding:.5rem 1rem .625rem;flex-shrink:0;box-shadow:0 -1px 4px rgba(0,0,0,.05)}
+.foot-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
+.prog-text{font-size:.72rem;font-weight:700;color:var(--muted)}
+.btn-reset{font-size:.7rem;font-weight:700;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:6px;padding:.28rem .55rem;cursor:pointer;font-family:inherit;min-height:30px;transition:all .15s}
+.btn-reset:hover{border-color:#DC2626;color:#DC2626}
+.prog-bar{height:6px;background:var(--border);border-radius:100px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:100px;transition:width .3s ease;width:0%}
+
+/* DARK MODE */
+html.dark{
+  --accent:#7BAFD4;--accent-dk:#6A9EC3;--accent-lt:#1A2C3D;
+  --bg:#16161A;--surf:#1F1F25;--text:#E4E4DF;--muted:#8C8C97;
+  --border:#2E2E38;--done:#484854;
+}
+html,body,.app,.header,.footer,.task-item,.add-form,.task-inp,.sel,.btn-nav,.btn-mode,.mode-badge,.btn-reset,.btn-del,.freq-badge,.prog-bar{
+  transition:background-color .2s,color .2s,border-color .2s;
+}
+html.dark .f-daily{background:#1A2C3E;color:#7BAFD4}
+html.dark .f-weekly{background:#2B2210;color:#D4A855}
+html.dark .f-monthly{background:#182B1C;color:#5DC46A}
+html.dark .f-optional{background:#26262E;color:#8C8C97}
+html.dark .btn-del:hover{background:#3D1818;color:#FF7070}
+html.dark .btn-reset:hover{border-color:#FF7070;color:#FF7070}
+
+/* LOADING OVERLAY */
+#loadingOverlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;font-family:'Nunito',system-ui,sans-serif;font-size:.9rem;font-weight:700;color:var(--muted);letter-spacing:.02em;transition:opacity .3s}
+#loadingOverlay.hide{opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+
+<div id="loadingOverlay">Chargement…</div>
+
+<div class="app">
+  <header class="header">
+    <h1 class="app-title">Ma Semaine</h1>
+    <div class="header-r">
+      <span class="mode-badge" id="modeBadge"></span>
+      <button class="btn-mode" id="btnMode">Changer</button>
+      <button class="btn-dark" id="btnDark" title="Mode sombre">🌙</button>
+    </div>
+  </header>
+
+  <main class="main" id="mainScroll">
+    <div class="day-nav">
+      <button class="btn-nav" id="btnPrev">‹</button>
+      <div class="day-info">
+        <h2 class="day-name" id="dayName"></h2>
+        <div class="day-sub">
+          <span class="day-date" id="dayDate"></span>
+          <span class="today-chip" id="todayChip" style="display:none">Aujourd'hui</span>
+        </div>
+        <p class="day-prog" id="dayProg"></p>
+      </div>
+      <button class="btn-nav" id="btnNext">›</button>
+    </div>
+
+    <ul class="task-list" id="taskList"></ul>
+
+    <div class="add-form">
+      <input type="text" id="inp" class="task-inp" placeholder="Ajouter une tâche…" autocomplete="off">
+      <div class="form-row">
+        <select id="selFreq" class="sel">
+          <option value="daily">Quotidienne</option>
+          <option value="weekly" selected>Hebdomadaire</option>
+          <option value="monthly">Mensuelle</option>
+          <option value="optional">Optionnelle</option>
+        </select>
+        <select id="selDur" class="sel">
+          <option>5 min</option><option>10 min</option><option>15 min</option>
+          <option>20 min</option><option>30 min</option><option>45 min</option><option>1h</option>
+        </select>
+        <button class="btn-add" id="btnAdd">Ajouter</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="foot-row">
+      <span class="prog-text" id="progText"></span>
+      <button class="btn-reset" id="btnReset">↺ Réinitialiser</button>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  </footer>
+</div>
+
+<script type="module">
+import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ── FIREBASE ─────────────────────────────────────────────────────
+const app = initializeApp({
+  apiKey: "AIzaSyBvRCxPT2W7djJcHSR9kweBnaNXYQtdZqo",
+  authDomain: "app-caly.firebaseapp.com",
+  projectId: "app-caly",
+  storageBucket: "app-caly.firebasestorage.app",
+  messagingSenderId: "870451326147",
+  appId: "1:870451326147:web:3b418cc819df67d5da4676"
+});
+const db = getFirestore(app);
+const STATE_REF = doc(db, 'ma-semaine', 'state');
+
+// ── DONNÉES ───────────────────────────────────────────────────────
+const DK = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+const DL = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+const FREQ = {
+  daily:    {label:'🔵 Quotidienne',  cls:'f-daily'},
+  weekly:   {label:'🟡 Hebdomadaire', cls:'f-weekly'},
+  monthly:  {label:'🟢 Mensuelle',    cls:'f-monthly'},
+  optional: {label:'⚪ Optionnelle',  cls:'f-optional'},
+};
+
+function tk(id,name,dur,freq,slot){return{id,name,duration:dur,freq,slot:slot||''};}
+
+const DEFS = {
+  avec:{
+    lundi:[
+      tk('a-lu-1','Nettoyer la litière','5 min','daily','17h–dîner'),
+      tk('a-lu-2','Nettoyer les surfaces cuisine','5 min','daily','après dîner'),
+      tk('a-lu-3',"Passer l'aspirateur",'20 min','daily','21h+'),
+      tk('a-lu-4','Lancer une lessive','5 min','weekly','17h–dîner'),
+      tk('a-lu-5','Ranger / ramasser le bordel','15 min','optional','21h+'),
+    ],
+    mardi:[
+      tk('a-ma-1','Nettoyer la litière','5 min','daily','17h–dîner'),
+      tk('a-ma-2','Nettoyer les surfaces cuisine','5 min','daily','après dîner'),
+      tk('a-ma-3',"Passer l'aspirateur",'20 min','daily','21h+'),
+      tk('a-ma-4','Étendre / ranger le linge','15 min','weekly','21h+'),
+      tk('a-ma-5','Ranger / ramasser le bordel','15 min','optional','21h+'),
+    ],
+    mercredi:[
+      tk('a-me-1','Nettoyer la litière','5 min','daily','17h–dîner'),
+      tk('a-me-2','Nettoyer les surfaces cuisine','5 min','daily','après dîner'),
+      tk('a-me-3',"Passer l'aspirateur",'20 min','daily','21h+'),
+      tk('a-me-4','Lancer une lessive','5 min','weekly','17h–dîner'),
+      tk('a-me-5','Arroser le jardin','10 min','daily','17h–dîner'),
+      tk('a-me-6','Ranger / ramasser le bordel','15 min','optional','21h+'),
+    ],
+    jeudi:[
+      tk('a-je-1','Nettoyer la litière','5 min','daily','17h–dîner'),
+      tk('a-je-2','Nettoyer les surfaces cuisine','5 min','daily','après dîner'),
+      tk('a-je-3',"Passer l'aspirateur",'20 min','daily','21h+'),
+      tk('a-je-4','Étendre / ranger le linge','15 min','weekly','21h+'),
+      tk('a-je-5','Vider les poubelles','5 min','weekly','21h+'),
+      tk('a-je-6','Ranger / ramasser le bordel','15 min','optional','21h+'),
+    ],
+    vendredi:[
+      tk('a-ve-1','Nettoyer la litière','5 min','daily','17h–dîner'),
+      tk('a-ve-2','Nettoyer les surfaces cuisine','5 min','daily','après dîner'),
+      tk('a-ve-3',"Passer l'aspirateur",'20 min','daily','21h+'),
+      tk('a-ve-4','Lancer une lessive','5 min','weekly','17h–dîner'),
+      tk('a-ve-5','Arroser le jardin','10 min','daily','17h–dîner'),
+      tk('a-ve-6','Ranger / ramasser le bordel','15 min','optional','21h+'),
+    ],
+    samedi:[
+      tk('a-sa-1',"Passer l'aspirateur",'20 min','daily','matin'),
+      tk('a-sa-2','Passer la serpillère','20 min','weekly','matin'),
+      tk('a-sa-3','Dépoussiérer les meubles','20 min','weekly','matin'),
+      tk('a-sa-4','Nettoyer les sanitaires','20 min','weekly','matin'),
+      tk('a-sa-5','Laver le linge de maison (draps + serviettes)','10 min','weekly','matin'),
+      tk('a-sa-6','Étendre / ranger le linge','15 min','weekly','matin'),
+      tk('a-sa-7','Repassage','25 min','weekly','après-midi'),
+      tk('a-sa-8','Faire les courses','45 min','weekly','après-midi'),
+      tk('a-sa-9','Arroser le jardin','10 min','daily','matin'),
+      tk('a-sa-10','Tondre la pelouse','30 min','weekly','matin'),
+      tk('a-sa-11','Nettoyer la litière','5 min','daily','matin'),
+    ],
+    dimanche:[
+      tk('a-di-1',"Passer l'aspirateur",'20 min','daily','matin'),
+      tk('a-di-2','Nettoyer la litière','5 min','daily','matin'),
+      tk('a-di-3','Nettoyer les surfaces cuisine','5 min','daily','soir'),
+      tk('a-di-4','Arroser le jardin','10 min','daily','matin'),
+      tk('a-di-5','Ranger / ramasser le bordel','15 min','optional','après-midi'),
+    ],
+  },
+  sans:{
+    lundi:[
+      tk('s-lu-1','Nettoyer la litière','5 min','daily','18h–18h30'),
+      tk('s-lu-2','Lancer une lessive','5 min','weekly','18h–18h30'),
+    ],
+    mardi:[
+      tk('s-ma-1','Nettoyer la litière','5 min','daily','18h–18h30'),
+      tk('s-ma-2','Étendre / ranger le linge','15 min','weekly','18h–18h30'),
+    ],
+    mercredi:[
+      tk('s-me-1','Nettoyer la litière','5 min','daily','18h–18h30'),
+      tk('s-me-2','Lancer une lessive','5 min','weekly','18h–18h30'),
+    ],
+    jeudi:[
+      tk('s-je-1','Nettoyer la litière','5 min','daily','18h–18h30'),
+      tk('s-je-2','Vider les poubelles','5 min','weekly','18h–18h30'),
+    ],
+    vendredi:[
+      tk('s-ve-1','Nettoyer la litière','5 min','daily','18h–18h30'),
+      tk('s-ve-2','Étendre / ranger le linge','15 min','weekly','18h–18h30'),
+    ],
+    samedi:[
+      tk('s-sa-1',"Passer l'aspirateur",'20 min','daily','matin'),
+      tk('s-sa-2','Passer la serpillère','20 min','weekly','matin'),
+      tk('s-sa-3','Dépoussiérer les meubles','20 min','weekly','matin'),
+      tk('s-sa-4','Nettoyer les sanitaires','20 min','weekly','matin'),
+      tk('s-sa-5','Laver le linge de maison','10 min','weekly','matin'),
+      tk('s-sa-6','Lancer une lessive','5 min','weekly','matin'),
+      tk('s-sa-7','Repassage','25 min','weekly','matin'),
+      tk('s-sa-8','Arroser le jardin','10 min','daily','matin'),
+      tk('s-sa-9','Tondre la pelouse','30 min','weekly','matin'),
+    ],
+    dimanche:[
+      tk('s-di-1','Faire les courses','45 min','weekly','matin'),
+      tk('s-di-2','Nettoyer la litière','5 min','daily','matin'),
+      tk('s-di-3','Arroser le jardin','10 min','daily','matin'),
+      tk('s-di-4','Désencombrer / ranger en profondeur','1h','monthly','après-midi'),
+      tk('s-di-5','Nettoyer les vitres (baie vitrée 3m + 4 fenêtres)','45 min','monthly','après-midi'),
+      tk('s-di-6','Nettoyage intérieur voiture','30 min','monthly','après-midi'),
+      tk('s-di-7','Nettoyer cuisine en profondeur','30 min','monthly','après-midi'),
+      tk('s-di-8','Vider et nettoyer le frigo','15 min','monthly','après-midi'),
+    ],
+  }
+};
+
+// ── STATE ─────────────────────────────────────────────────────────
+function todayIdx(){const d=new Date().getDay();return d===0?6:d-1;}
+function freshState(){return{mode:'avec',day:todayIdx(),tasks:JSON.parse(JSON.stringify(DEFS)),done:{}};}
+
+let S = null;
+
+// ── PERSISTANCE ───────────────────────────────────────────────────
+function saveLocal(){
+  try{localStorage.setItem('masemaine-v2',JSON.stringify(S));}catch(e){}
+}
+function save(){
+  saveLocal();
+  setDoc(STATE_REF, S).catch(()=>{}); // fire-and-forget
+}
+
+async function loadState(){
+  // 1) Essai Firebase
+  try{
+    const snap = await getDoc(STATE_REF);
+    if(snap.exists()) return snap.data();
+  }catch(e){}
+  // 2) Fallback localStorage
+  try{
+    const raw = localStorage.getItem('masemaine-v2');
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  // 3) État vide
+  return freshState();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function dayTasks(){return(S.tasks[S.mode]||{})[DK[S.day]]||[];}
+function doneKey(id){return S.mode+'|'+DK[S.day]+'|'+id;}
+function isDone(id){return!!S.done[doneKey(id)];}
+
+function weekStats(){
+  let total=0,done=0;
+  DK.forEach(dk=>{
+    ((S.tasks[S.mode]||{})[dk]||[]).forEach(t=>{
+      if(t.freq==='optional')return;
+      total++;
+      if(S.done[S.mode+'|'+dk+'|'+t.id])done++;
+    });
+  });
+  return{total,done};
+}
+function dayStats(){
+  let total=0,done=0;
+  dayTasks().forEach(t=>{
+    if(t.freq==='optional')return;
+    total++;
+    if(isDone(t.id))done++;
+  });
+  return{total,done};
+}
+function weekMonday(){
+  const d=new Date();const day=d.getDay();
+  d.setDate(d.getDate()-(day===0?6:day-1));d.setHours(0,0,0,0);return d;
+}
+function dayDate(idx){
+  const m=weekMonday();m.setDate(m.getDate()+idx);
+  return m.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
+}
+function esc(s){const d=document.createElement('div');d.textContent=String(s);return d.innerHTML;}
+function uid(){return 'c'+Date.now()+Math.random().toString(36).slice(2,6);}
+
+// ── RENDER ────────────────────────────────────────────────────────
+function render(){
+  document.getElementById('modeBadge').textContent=S.mode==='avec'?'👧 Avec Caly':'🧘 Sans Caly';
+  document.getElementById('dayName').textContent=DL[S.day];
+  document.getElementById('dayDate').textContent=dayDate(S.day);
+  document.getElementById('todayChip').style.display=S.day===todayIdx()?'inline':'none';
+  const ds=dayStats();
+  document.getElementById('dayProg').textContent=`${ds.done}/${ds.total} tâches faites`;
+
+  const tasks=dayTasks();
+  const sorted=[...tasks].sort((a,b)=>{
+    const da=isDone(a.id),db=isDone(b.id);
+    return da===db?0:da?1:-1;
+  });
+  const ul=document.getElementById('taskList');
+  if(sorted.length===0){
+    ul.innerHTML='<li class="day-empty">Aucune tâche pour ce jour 🎉</li>';
+  }else{
+    ul.innerHTML=sorted.map(task=>{
+      const done=isDone(task.id);
+      const fc=FREQ[task.freq]||FREQ.optional;
+      const cls='task-item'+(done?' is-done':'')+(task.freq==='optional'?' is-opt':'');
+      return`<li class="${cls}" data-id="${esc(task.id)}">
+        <div class="task-cb ${done?'on':''}" data-action="toggle"></div>
+        <div class="task-body">
+          <div class="task-name">${esc(task.name)}</div>
+          <div class="task-meta">
+            <span class="task-dur">⏱ ${esc(task.duration)}</span>
+            ${task.slot?`<span class="task-slot">· ${esc(task.slot)}</span>`:''}
+            <span class="freq-badge ${fc.cls}">${fc.label}</span>
+          </div>
+        </div>
+        <button class="btn-del" data-action="delete" title="Supprimer">✕</button>
+      </li>`;
+    }).join('');
+  }
+
+  const ws=weekStats();
+  const pct=ws.total>0?Math.round(ws.done/ws.total*100):0;
+  document.getElementById('progText').textContent=`Semaine : ${ws.done}/${ws.total} tâches complétées (${pct}%)`;
+  document.getElementById('progFill').style.width=pct+'%';
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────
+function toggle(id){S.done[doneKey(id)]=!S.done[doneKey(id)];save();render();}
+
+function deleteTask(id){
+  const dk=DK[S.day];
+  S.tasks[S.mode][dk]=(S.tasks[S.mode][dk]||[]).filter(t=>t.id!==id);
+  delete S.done[doneKey(id)];
+  save();render();
+}
+
+function addTask(){
+  const name=document.getElementById('inp').value.trim();
+  if(!name){document.getElementById('inp').focus();return;}
+  const freq=document.getElementById('selFreq').value;
+  const dur=document.getElementById('selDur').value;
+  if(freq==='daily'){
+    DK.forEach(dk=>{
+      S.tasks[S.mode][dk]=S.tasks[S.mode][dk]||[];
+      S.tasks[S.mode][dk].push({id:uid()+dk,name,duration:dur,freq,slot:''});
+    });
+  }else{
+    const dk=DK[S.day];
+    S.tasks[S.mode][dk]=S.tasks[S.mode][dk]||[];
+    S.tasks[S.mode][dk].push({id:uid(),name,duration:dur,freq,slot:''});
+  }
+  document.getElementById('inp').value='';
+  save();render();
+}
+
+function changeMode(){
+  if(!confirm('Changer de mode réinitialisera la semaine en cours. Continuer ?'))return;
+  const nm=S.mode==='avec'?'sans':'avec';
+  Object.keys(S.done).forEach(k=>{if(k.startsWith(nm+'|'))delete S.done[k];});
+  S.mode=nm;
+  save();render();
+}
+
+function resetWeek(){
+  if(!confirm('Décocher toutes les tâches de la semaine ?'))return;
+  Object.keys(S.done).forEach(k=>{if(k.startsWith(S.mode+'|'))delete S.done[k];});
+  save();render();
+}
+
+function navDay(dir){
+  S.day=(S.day+dir+7)%7;
+  document.getElementById('mainScroll').scrollTop=0;
+  save();render();
+}
+
+// ── DARK MODE ─────────────────────────────────────────────────────
+let dark=localStorage.getItem('masemaine-dark')==='1';
+function applyDark(){
+  document.documentElement.classList.toggle('dark',dark);
+  document.getElementById('btnDark').textContent=dark?'☀️':'🌙';
+}
+document.getElementById('btnDark').onclick=()=>{
+  dark=!dark;localStorage.setItem('masemaine-dark',dark?'1':'0');applyDark();
+};
+
+// ── EVENTS ────────────────────────────────────────────────────────
+document.getElementById('btnPrev').onclick=()=>navDay(-1);
+document.getElementById('btnNext').onclick=()=>navDay(1);
+document.getElementById('btnMode').onclick=changeMode;
+document.getElementById('btnAdd').onclick=addTask;
+document.getElementById('btnReset').onclick=resetWeek;
+document.getElementById('inp').onkeydown=e=>{if(e.key==='Enter')addTask();};
+
+document.getElementById('taskList').addEventListener('click',e=>{
+  const li=e.target.closest('[data-id]');if(!li)return;
+  const id=li.dataset.id;
+  if(e.target.closest('.btn-del')){deleteTask(id);return;}
+  toggle(id);
+});
+
+let tx=0,ty=0;
+const ms=document.getElementById('mainScroll');
+ms.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+ms.addEventListener('touchend',e=>{
+  const dx=tx-e.changedTouches[0].clientX;
+  const dy=ty-e.changedTouches[0].clientY;
+  if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.5)navDay(dx>0?1:-1);
+},{passive:true});
+
+// ── INIT ──────────────────────────────────────────────────────────
+applyDark();
+loadState().then(data=>{
+  S=data;
+  S.day=todayIdx();
+  render();
+  const overlay=document.getElementById('loadingOverlay');
+  overlay.classList.add('hide');
+  setTimeout(()=>overlay.remove(),300);
+});
+</script>
+</body>
+</html>
