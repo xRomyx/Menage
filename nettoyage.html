@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FBF6EF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1D1A17" media="(prefers-color-scheme: dark)">
+<title>Mon ménage</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3/dist/tabler-icons.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#FBF6EF;--surf:#FFFFFF;--text:#4A3426;--sub:#8A6E55;--bdr:#EFE4D6;
+  --sage:#3E6B4A;--sage-lt:#E6EFE7;--sage-tx:#24452E;--soft:#D49A4E;--track:#EFE6DA;
+  --icS:60%;--icL:92%;--icS2:40%;--icL2:36%;
+  --hd:56px;--ft:64px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1D1A17;--surf:#29251F;--text:#F2E9DF;--sub:#B3A493;--bdr:#3A332B;
+  --sage:#8FC39D;--sage-lt:#243528;--sage-tx:#D3EAD8;--soft:#E0AE6A;--track:#3A332B;
+  --icS:22%;--icL:24%;--icS2:55%;--icL2:78%;
+}}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'Nunito',system-ui,sans-serif;color:var(--text)}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:480px;margin:0 auto;background:var(--bg)}
+
+.hd{height:var(--hd);display:flex;align-items:center;justify-content:space-between;padding:0 1.1rem;flex-shrink:0}
+.hd-title{font-size:1rem;font-weight:800;color:var(--sage)}
+.chip{font-size:.75rem;font-weight:700;background:var(--sage-lt);color:var(--sage-tx);padding:.4rem .8rem;border-radius:100px;border:none;font-family:inherit;cursor:pointer}
+
+.main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pane{display:none;padding:.25rem 1rem 1.5rem;flex-direction:column;gap:1rem}
+.pane.on{display:flex}
+
+.nav{height:var(--ft);background:var(--surf);border-top:1px solid var(--bdr);display:flex;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav-btn{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--sub);font-family:inherit;font-size:.7rem;font-weight:700}
+.nav-btn i{font-size:22px}
+.nav-btn.on{color:var(--sage)}
+
+.greet-d{font-size:.8rem;color:var(--sub);font-weight:600}
+.greet{font-size:1.5rem;font-weight:800;margin-top:.1rem}
+
+.hero{background:var(--sage-lt);border-radius:20px;padding:1rem 1.15rem}
+.hero-l{font-size:.8rem;font-weight:700;color:var(--sage)}
+.hero-v{font-size:1.2rem;font-weight:800;color:var(--sage-tx);margin-top:.1rem}
+.hero-s{font-size:.8rem;color:var(--sage);margin-top:.15rem}
+.bar{height:7px;background:var(--track);border-radius:4px;overflow:hidden}
+.hero .bar{margin-top:.75rem;background:var(--surf)}
+.bar>div{height:100%;border-radius:4px;background:var(--sage);transition:width .4s}
+.bar>div.low{background:var(--soft)}
+
+.list{display:flex;flex-direction:column;gap:.5rem}
+.task{display:flex;align-items:center;gap:.75rem;background:var(--surf);border-radius:16px;padding:.7rem .85rem;cursor:pointer;transition:opacity .25s}
+.task.done{opacity:.5}
+.task.done .tn{text-decoration:line-through}
+.ic{width:38px;height:38px;min-width:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;background:hsl(var(--h) var(--icS) var(--icL));color:hsl(var(--h) var(--icS2) var(--icL2))}
+.ic.sm{width:30px;height:30px;min-width:30px;font-size:16px}
+.tb{flex:1;min-width:0}
+.tn{font-size:.95rem;font-weight:700;line-height:1.25}
+.tm{font-size:.78rem;color:var(--sub);margin-top:.1rem}
+.chk{width:26px;height:26px;min-width:26px;border:2px solid var(--bdr);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--surf);font-size:15px}
+.chk.on{background:var(--sage);border-color:var(--sage)}
+
+.s-hd{font-size:.85rem;font-weight:800;color:var(--sub);margin:.25rem 0 -.25rem}
+.note{font-size:.8rem;color:var(--sub);line-height:1.55}
+.empty{text-align:center;padding:1.25rem 1rem;color:var(--sub);font-size:.9rem;font-weight:600}
+
+.card{background:var(--surf);border-radius:18px;padding:1rem}
+.lbl{font-size:.8rem;font-weight:700;color:var(--sub);margin-bottom:.4rem}
+.seg{display:flex;background:var(--bg);border-radius:12px;padding:3px;gap:3px}
+.seg button{flex:1;min-height:40px;border:none;border-radius:10px;background:none;font-family:inherit;font-size:.85rem;font-weight:700;color:var(--sub);cursor:pointer}
+.seg button.on{background:var(--sage);color:var(--surf)}
+
+.row{background:var(--surf);border-radius:16px;overflow:hidden}
+.row-hd{display:flex;align-items:center;gap:.75rem;padding:.8rem .9rem;cursor:pointer;user-select:none}
+.row-n{font-size:.95rem;font-weight:800;flex:1;min-width:0}
+.row-n.today{color:var(--sage)}
+.row-i{font-size:.8rem;color:var(--sub);font-weight:600;white-space:nowrap}
+.arr{font-size:16px;color:var(--sub);transition:transform .2s}
+.arr.open{transform:rotate(180deg)}
+.row-body{padding:0 .9rem .75rem;display:flex;flex-direction:column;gap:.15rem}
+.mini{display:flex;align-items:center;gap:.6rem;padding:.4rem 0;border-top:1px solid var(--bdr)}
+.mini:first-child{border-top:none}
+.mini .tn{font-size:.85rem}
+.mini.done .tn{text-decoration:line-through;color:var(--sub)}
+.mini-r{font-size:.75rem;color:var(--sub);text-align:right;white-space:nowrap}
+.mini-r b{color:var(--sage);font-weight:700}
+
+.room{padding:.8rem .9rem}
+.room-top{display:flex;align-items:center;gap:.75rem;margin-bottom:.55rem}
+.room-pct{font-size:.9rem;font-weight:800;color:var(--sub)}
+.big{font-size:2rem;font-weight:800;color:var(--sage-tx);line-height:1}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="hd">
+  <span class="hd-title">Mon ménage</span>
+  <button class="chip" id="mode-btn" onclick="toggleMode()"></button>
+</header>
+<main class="main" id="main">
+  <div class="pane on" id="pane-auj"></div>
+  <div class="pane" id="pane-sem"></div>
+  <div class="pane" id="pane-mai"></div>
+</main>
+<nav class="nav">
+  <button class="nav-btn on" id="nb-auj" onclick="go('auj')"><i class="ti ti-checklist"></i>Aujourd'hui</button>
+  <button class="nav-btn" id="nb-sem" onclick="go('sem')"><i class="ti ti-calendar-week"></i>Semaine</button>
+  <button class="nav-btn" id="nb-mai" onclick="go('mai')"><i class="ti ti-home"></i>Ma maison</button>
+</nav>
+</div>
+<script>
+const TASKS=[
+  {id:'bua_mach',z:'Buanderie',n:'Nettoyer la machine',f:'M',d:10,s:true},
+  {id:'bua_sol',z:'Buanderie',n:'Laver le sol',f:'M',d:10,s:true},
+  {id:'cav_bal',z:'Cave',n:'Balayer',f:'M',d:15,s:true},
+  {id:'cav_des',z:'Cave',n:'Désencombrer',f:'T',d:30,s:true},
+  {id:'chb_asp',z:'Chambre bas',n:'Aspirer',f:'H',d:15,s:false},
+  {id:'chb_dep',z:'Chambre bas',n:'Dépoussiérer',f:'D',d:10,s:true},
+  {id:'chb_drap',z:'Chambre bas',n:'Changer les draps',f:'H',d:15,s:true},
+  {id:'chb_sol',z:'Chambre bas',n:'Laver le sol',f:'M',d:10,s:true},
+  {id:'chb_vit',z:'Chambre bas',n:'Vitres',f:'T',d:15,s:true},
+  {id:'chh_asp',z:'Chambre haut',n:'Aspirer',f:'H',d:15,s:false},
+  {id:'chh_dep',z:'Chambre haut',n:'Dépoussiérer',f:'D',d:10,s:true},
+  {id:'chh_drap',z:'Chambre haut',n:'Changer les draps',f:'H',d:15,s:true},
+  {id:'chh_mir',z:'Chambre haut',n:'Nettoyer les miroirs',f:'H',d:5,s:true},
+  {id:'chh_sol',z:'Chambre haut',n:'Laver le sol',f:'M',d:10,s:true},
+  {id:'chh_vit',z:'Chambre haut',n:'Vitres',f:'T',d:15,s:true},
+  {id:'cor_asp',z:'Couloirs RDC',n:'Aspirer',f:'H',d:10,s:false},
+  {id:'cor_dep',z:'Couloirs RDC',n:'Dépoussiérer',f:'D',d:5,s:true},
+  {id:'cor_sol',z:'Couloirs RDC',n:'Laver le sol',f:'M',d:10,s:true},
+  {id:'coh_asp',z:'Couloir haut',n:'Aspirer',f:'H',d:5,s:false},
+  {id:'coh_dep',z:'Couloir haut',n:'Dépoussiérer',f:'D',d:5,s:true},
+  {id:'coh_sol',z:'Couloir haut',n:'Laver le sol',f:'M',d:5,s:true},
+  {id:'cui_sur',z:'Cuisine',n:'Nettoyer les surfaces',f:'H',d:10,s:true},
+  {id:'cui_evi',z:'Cuisine',n:"Nettoyer l'évier",f:'H',d:5,s:true},
+  {id:'cui_pla',z:'Cuisine',n:'Nettoyer les plaques',f:'H',d:10,s:true},
+  {id:'cui_sol',z:'Cuisine',n:'Laver le sol',f:'H',d:10,s:true},
+  {id:'cui_meu',z:'Cuisine',n:'Nettoyer les meubles',f:'M',d:20,s:true},
+  {id:'cui_fou',z:'Cuisine',n:'Nettoyer le four',f:'M',d:30,s:true},
+  {id:'cui_fri',z:'Cuisine',n:'Nettoyer le frigo',f:'M',d:20,s:true},
+  {id:'cui_mic',z:'Cuisine',n:'Nettoyer le micro-ondes',f:'M',d:10,s:true},
+  {id:'jar_arr',z:'Jardin',n:'Arroser',f:'H',d:10,s:true},
+  {id:'jar_ton',z:'Jardin',n:'Tondre',f:'H',d:30,s:false},
+  {id:'jar_des',z:'Jardin',n:'Désherber',f:'M',d:20,s:true},
+  {id:'jar_ter',z:'Jardin',n:'Nettoyer terrasse/allées',f:'M',d:20,s:true},
+  {id:'jar_tai',z:'Jardin',n:'Tailler',f:'T',d:30,s:true},
+  {id:'rou_lit',z:'Routines',n:'Nettoyer les litières x3',f:'Q',d:10,s:true},
+  {id:'rou_vai',z:'Routines',n:'Vider le lave-vaisselle',f:'Q',d:5,s:true},
+  {id:'rou_div',z:'Routines',n:'Laver les draps du divan',f:'H',d:5,s:true},
+  {id:'rou_mac',z:'Routines',n:'Lancer une machine',f:'H',d:5,s:true},
+  {id:'rou_pou',z:'Routines',n:'Sortir les poubelles',f:'H',d:5,s:true},
+  {id:'sam_asp',z:'Salle à manger',n:'Aspirer',f:'H',d:10,s:false},
+  {id:'sam_dep',z:'Salle à manger',n:'Dépoussiérer',f:'D',d:5,s:true},
+  {id:'sam_sol',z:'Salle à manger',n:'Laver le sol',f:'M',d:10,s:true},
+  {id:'sam_vit',z:'Salle à manger',n:'Vitres',f:'T',d:15,s:true},
+  {id:'sdb_dou',z:'Salle de bain',n:'Nettoyer la douche',f:'H',d:15,s:true},
+  {id:'sdb_cuv',z:'Salle de bain',n:'Nettoyer la cuvette',f:'H',d:5,s:true},
+  {id:'sdb_lav',z:'Salle de bain',n:'Nettoyer le lavabo',f:'H',d:5,s:true},
+  {id:'sdb_mir',z:'Salle de bain',n:'Nettoyer le miroir',f:'H',d:5,s:true},
+  {id:'sdb_dep',z:'Salle de bain',n:'Dépoussiérer',f:'D',d:5,s:true},
+  {id:'sdb_sol',z:'Salle de bain',n:'Laver le sol',f:'H',d:5,s:true},
+  {id:'sdb_vit',z:'Salle de bain',n:'Vitres',f:'T',d:10,s:true},
+  {id:'sdb_det',z:'Salle de bain',n:'Détartrer',f:'M',d:20,s:true},
+  {id:'sdj_asp',z:'Salle de jeu',n:'Aspirer',f:'H',d:20,s:false},
+  {id:'sdj_dep',z:'Salle de jeu',n:'Dépoussiérer',f:'D',d:10,s:true},
+  {id:'sdj_sol',z:'Salle de jeu',n:'Laver le sol',f:'M',d:15,s:true},
+  {id:'sal_asp',z:'Salon',n:'Aspirer',f:'H',d:15,s:false},
+  {id:'sal_dep',z:'Salon',n:'Dépoussiérer',f:'D',d:10,s:true},
+  {id:'sal_sol',z:'Salon',n:'Laver le sol',f:'M',d:15,s:true},
+  {id:'sal_vit',z:'Salon',n:'Vitres',f:'T',d:20,s:true},
+  {id:'toi_cuv',z:'Toilette',n:'Nettoyer la cuvette',f:'H',d:5,s:true},
+  {id:'toi_sol',z:'Toilette',n:'Laver le sol',f:'H',d:5,s:true},
+];
+
+const ZONES={
+  'Buanderie':{i:'wash-machine',h:200},
+  'Cave':{i:'box',h:30},
+  'Chambre bas':{i:'bed-flat',h:255},
+  'Chambre haut':{i:'bed',h:280},
+  'Couloir haut':{i:'stairs-up',h:45},
+  'Couloirs RDC':{i:'door',h:35},
+  'Cuisine':{i:'tools-kitchen-2',h:18},
+  'Jardin':{i:'plant-2',h:110},
+  'Routines':{i:'cat',h:335},
+  'Salle à manger':{i:'bowl',h:5},
+  'Salle de bain':{i:'bath',h:210},
+  'Salle de jeu':{i:'puzzle',h:300},
+  'Salon':{i:'armchair',h:160},
+  'Toilette':{i:'toilet-paper',h:190},
+};
+
+const FD={Q:1,H:7,D:14,M:30,T:90};
+const FL={Q:'Chaque jour',H:'Chaque semaine',D:'Toutes les 2 semaines',M:'Chaque mois',T:'Tous les 3 mois'};
+const DAYS_FR=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+const QMIN=TASKS.filter(t=>t.f==='Q').reduce((s,t)=>s+t.d,0);
+
+// Le rythme (refWeek/refMode) est demandé au premier lancement et reste sur le téléphone.
+let S={refWeek:null,refMode:null,over:{},flexDay:5,lastDone:{},prev:{},plan:{},planDay:null,planKey:null,seeded:false};
+
+function loadS(){try{const d=JSON.parse(localStorage.getItem('menage2'));if(d)S={...S,...d};}catch(e){}
+  if(S.flexDay!==5&&S.flexDay!==6)S.flexDay=5;
+  if(!S.prev)S.prev={};
+  if(!S.over)S.over={};
+  delete S.mode;delete S.planWeek;
+}
+function saveS(){try{localStorage.setItem('menage2',JSON.stringify(S));}catch(e){}}
+
+function localStr(dt){
+  const y=dt.getFullYear();
+  const m=String(dt.getMonth()+1).padStart(2,'0');
+  const d=String(dt.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+function today(){return localStr(new Date())}
+function addDays(d,n){const dt=new Date(d+'T00:00:00');dt.setDate(dt.getDate()+n);return localStr(dt)}
+function monday(d){
+  const dt=new Date(d+'T00:00:00');
+  const dy=dt.getDay();
+  dt.setDate(dt.getDate()+(dy===0?-6:1-dy));
+  return localStr(dt);
+}
+function diffDays(a,b){return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000)}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function plur(n,w){return n+' '+w+(n>1?'s':'')}
+
+function byId(id){return TASKS.find(t=>t.id===id)}
+function nextDue(id){
+  const t=byId(id),ld=S.lastDone[id];
+  return ld?addDays(ld,FD[t.f]):'2000-01-01';
+}
+function doneToday(id){return S.lastDone[id]===today()}
+function doneSince(id,d){const ld=S.lastDone[id];return!!ld&&ld>=d}
+
+// Fraîcheur : 100 % juste après, 50 % à l'échéance, 0 % à deux fois la période.
+function fresh(t){
+  const ld=S.lastDone[t.id];if(!ld)return 0;
+  return Math.max(0,Math.min(1,1-diffDays(ld,today())/(2*FD[t.f])));
+}
+function avgFresh(list){return list.length?Math.round(list.reduce((s,t)=>s+fresh(t),0)/list.length*100):0}
+
+// Départ étalé : chaque tâche reçoit une date fictive répartie dans sa période,
+// pour que les échéances arrivent régulièrement au lieu de toutes en même temps.
+function seed(){
+  if(S.seeded)return;
+  const tod=today(),groups={};
+  for(const t of TASKS){
+    if(t.f==='Q'||S.lastDone[t.id])continue;
+    (groups[t.f]=groups[t.f]||[]).push(t);
+  }
+  for(const f in groups){
+    const byZ={};
+    for(const t of groups[f])(byZ[t.z]=byZ[t.z]||[]).push(t);
+    const lists=Object.values(byZ),g=[];
+    while(lists.some(l=>l.length))for(const l of lists)if(l.length)g.push(l.shift());
+    g.forEach((t,k)=>{S.lastDone[t.id]=addDays(tod,-(1+Math.floor(k*(FD[f]-1)/g.length)));});
+  }
+  S.seeded=true;S.planDay=null;saveS();
+}
+
+function toggle(id){
+  if(doneToday(id)){
+    if(S.prev[id])S.lastDone[id]=S.prev[id];else delete S.lastDone[id];
+    delete S.prev[id];
+  }else{
+    if(S.lastDone[id])S.prev[id]=S.lastDone[id];
+    S.lastDone[id]=today();
+  }
+  saveS();render();
+}
+
+const other=m=>m==='avec'?'sans':'avec';
+function baseMode(wk){return Math.abs(Math.round(diffDays(S.refWeek,wk)/7))%2===0?S.refMode:other(S.refMode)}
+function modeOf(wk){return S.over[wk]||baseMode(wk)}
+function setWeekMode(wk,v){if(v===baseMode(wk))delete S.over[wk];else S.over[wk]=v;saveS();render();}
+function windowDays(){const tod=today();return[0,1,2,3,4,5,6].map(i=>addDays(tod,i))}
+
+function budgetOf(date){
+  const wk=monday(date),i=diffDays(wk,date);
+  if(modeOf(wk)==='avec')return i<5?{b:60,silent:true}:{b:120,silent:false};
+  if(i<5)return{b:30-QMIN,silent:false};
+  return{b:i===S.flexDay?120-QMIN:0,silent:false};
+}
+
+// Recalcule les 7 prochains jours : ce qui n'a pas été fait revient de lui-même.
+function replan(){
+  const tod=today(),days=windowDays();
+  const keep=(S.plan[tod]||[]).filter(doneToday);
+  S.plan={};
+  const slots=days.map(date=>({date,...budgetOf(date),used:0,ids:[]})).filter(s=>s.b>0);
+  const ts=slots.find(s=>s.date===tod);
+  if(ts){ts.ids=keep.slice();ts.used=keep.reduce((s,id)=>s+byId(id).d,0);}
+  else if(keep.length)S.plan[tod]=keep;
+  const end=days[6];
+  const due=TASKS
+    .filter(t=>t.f!=='Q'&&!doneToday(t.id)&&nextDue(t.id)<=end)
+    .sort((a,b)=>{const x=nextDue(a.id),y=nextDue(b.id);return x<y?-1:x>y?1:0});
+  // Chaque tâche va dans le jour le moins chargé avant son échéance, pour lisser la semaine.
+  for(const t of due){
+    const nd=nextDue(t.id)>tod?nextDue(t.id):tod;
+    const fit=slots.filter(sl=>(t.s||!sl.silent)&&sl.used+t.d<=sl.b);
+    const before=fit.filter(sl=>sl.date<=nd);
+    const sl=before.length?before.reduce((a,b)=>b.used/b.b<a.used/a.b?b:a):fit[0];
+    if(sl){sl.ids.push(t.id);sl.used+=t.d;}
+  }
+  for(const sl of slots)if(sl.ids.length)S.plan[sl.date]=sl.ids;
+  S.planDay=tod;S.planKey=planKey();saveS();
+}
+function planKey(){return S.flexDay+'|'+[...new Set(windowDays().map(monday))].map(modeOf).join(',')}
+function ensurePlan(){if(S.planDay!==today()||S.planKey!==planKey())replan();}
+
+let cur='auj';
+const open=new Set();
+function go(tab){
+  ['auj','sem','mai'].forEach(t=>{
+    document.getElementById('pane-'+t).classList.toggle('on',t===tab);
+    document.getElementById('nb-'+t).classList.toggle('on',t===tab);
+  });
+  cur=tab;document.getElementById('main').scrollTop=0;render();
+}
+function toggleOpen(k){open.has(k)?open.delete(k):open.add(k);render();}
+
+function setRhythm(m){S.refWeek=monday(today());S.refMode=m;S.planDay=null;saveS();render();}
+
+function renderSetup(){
+  document.getElementById('mode-btn').style.visibility='hidden';
+  if(cur!=='auj')go('auj');
+  document.getElementById('pane-auj').innerHTML=`<div><div class="greet">Bienvenue</div></div>
+  <div class="card">
+    <div class="tn" style="margin-bottom:.4rem">Cette semaine, as-tu ta fille ?</div>
+    <p class="note" style="margin-bottom:.85rem">L'app alternera ensuite toute seule chaque lundi. Ta réponse reste sur ce téléphone.</p>
+    <div class="seg">
+      <button onclick="setRhythm('avec')">Oui</button>
+      <button onclick="setRhythm('sans')">Non</button>
+    </div>
+  </div>`;
+}
+
+function render(){
+  if(!S.refWeek)return renderSetup();
+  ensurePlan();
+  const mb=document.getElementById('mode-btn');
+  mb.style.visibility='';
+  mb.textContent=modeOf(monday(today()))==='avec'?'Avec ma fille':'Sans ma fille';
+  if(cur==='auj')renderAuj();
+  else if(cur==='sem')renderSem();
+  else renderMai();
+}
+function toggleMode(){const wk=monday(today());setWeekMode(wk,other(modeOf(wk)));}
+function setFlex(v){S.flexDay=v;saveS();render();}
+
+function icon(z,sm){const c=ZONES[z];return`<span class="ic${sm?' sm':''}" style="--h:${c.h}"><i class="ti ti-${c.i}"></i></span>`}
+
+function taskHtml(t){
+  const d=doneToday(t.id);
+  return`<div class="task${d?' done':''}" onclick="toggle('${t.id}')">
+    ${icon(t.z)}
+    <div class="tb"><div class="tn">${t.n}</div><div class="tm">${t.z} · ${t.d} min</div></div>
+    <span class="chk${d?' on':''}">${d?'<i class="ti ti-check"></i>':''}</span>
+  </div>`;
+}
+
+function renderAuj(){
+  const tod=today();
+  const dt=new Date(tod+'T00:00:00');
+  const we=dt.getDay()===0||dt.getDay()===6;
+  const dateStr=cap(dt.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}));
+  const hello=new Date().getHours()<18?'Bonjour Romy':'Bonsoir Romy';
+
+  const list=[...TASKS.filter(t=>t.f==='Q'),...(S.plan[tod]||[]).map(byId).filter(Boolean)];
+  const todo=list.filter(t=>!doneToday(t.id));
+  const done=list.filter(t=>doneToday(t.id));
+  const mins=todo.reduce((s,t)=>s+t.d,0);
+  const pct=list.length?Math.round(done.length/list.length*100):0;
+
+  let html=`<div><div class="greet-d">${dateStr}</div><div class="greet">${hello}</div></div>
+  <div class="hero">
+    <div class="hero-l">${we?"Aujourd'hui":'Ce soir'}</div>
+    ${todo.length
+      ?`<div class="hero-v">${todo.length} ${todo.length>1?'petites choses':'petite chose'} · ${mins} min</div>`
+      :`<div class="hero-v">Tout est fait</div><div class="hero-s">Profite de ta ${we?'journée':'soirée'}</div>`}
+    <div class="bar"><div style="width:${pct}%"></div></div>
+  </div>
+  <div class="list">${[...todo,...done].map(taskHtml).join('')}</div>`;
+
+  document.getElementById('pane-auj').innerHTML=html;
+}
+
+function weekNote(m){
+  const o=S.flexDay===5?6:5;
+  return m==='avec'
+    ?"Lundi → vendredi : 1h le soir, sans bruit. Samedi et dimanche : 2h. Les routines s'ajoutent."
+    :`Lundi → vendredi : 30 min, routines comprises. ${DAYS_FR[S.flexDay]} : 2h, routines comprises. ${DAYS_FR[o]} : libre.`;
+}
+
+function dayRow(date){
+  const tod=today(),isToday=date===tod;
+  const i=diffDays(monday(date),date);
+  const tasks=(S.plan[date]||[]).map(byId).filter(Boolean);
+  const mins=tasks.reduce((s,t)=>s+t.d,0);
+  const info=tasks.length?`${plur(tasks.length,'chose')} · ${mins} min`:'Libre';
+  const k='d'+date,isOpen=open.has(k);
+  const label=isToday?"Aujourd'hui":DAYS_FR[i]+' '+new Date(date+'T00:00:00').getDate();
+  let h=`<div class="row"><div class="row-hd" onclick="toggleOpen('${k}')">
+    <span class="row-n${isToday?' today':''}">${label}</span>
+    <span class="row-i">${info}</span>
+    ${tasks.length?`<i class="ti ti-chevron-down arr${isOpen?' open':''}"></i>`:''}
+  </div>`;
+  if(isOpen&&tasks.length){
+    h+=`<div class="row-body">`;
+    for(const t of tasks){
+      const d=doneSince(t.id,date);
+      h+=`<div class="mini${d?' done':''}">${icon(t.z,true)}<div class="tb"><div class="tn">${t.n}</div><div class="tm">${t.z}</div></div><span class="mini-r">${d?'<b>fait</b>':t.d+' min'}</span></div>`;
+    }
+    h+=`</div>`;
+  }
+  return h+`</div>`;
+}
+
+function renderSem(){
+  const tod=today(),cw=monday(tod),days=windowDays();
+  let html='';
+  for(const wk of [...new Set(days.map(monday))]){
+    const m=modeOf(wk),exc=!!S.over[wk];
+    const title=wk===cw?'Cette semaine':'Semaine du '+new Date(wk+'T00:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
+    html+=`<div class="card">
+      <div class="lbl">${title}${exc?' · exception':''}</div>
+      <div class="seg">
+        <button class="${m==='avec'?'on':''}" onclick="setWeekMode('${wk}','avec')">Avec ma fille</button>
+        <button class="${m==='sans'?'on':''}" onclick="setWeekMode('${wk}','sans')">Sans ma fille</button>
+      </div>
+      <p class="note" style="margin-top:.7rem">${weekNote(m)}</p>
+    </div>
+    <div class="list">${days.filter(d=>monday(d)===wk).map(dayRow).join('')}</div>`;
+  }
+  html+=`<div class="card">
+    <div class="lbl">Semaines sans ma fille : mon jour de 2h</div>
+    <div class="seg">
+      <button class="${S.flexDay===5?'on':''}" onclick="setFlex(5)">Samedi</button>
+      <button class="${S.flexDay===6?'on':''}" onclick="setFlex(6)">Dimanche</button>
+    </div>
+    <p class="note" style="margin-top:.7rem">L'app alterne toute seule chaque lundi. Pour les vacances, change seulement la semaine concernée : le rythme reprend ensuite normalement.</p>
+  </div>
+  <p class="note">+ ${QMIN} min de routines chaque jour.</p>`;
+  document.getElementById('pane-sem').innerHTML=html;
+}
+
+function lastTxt(t){
+  const ld=S.lastDone[t.id];if(!ld)return'pas encore fait';
+  const n=diffDays(ld,today());
+  return n===0?"<b>fait aujourd'hui</b>":n===1?'fait hier':`fait il y a ${n} j`;
+}
+function nextTxt(t){
+  const n=diffDays(today(),nextDue(t.id));
+  return n<=0?'à faire':n===1?'demain':`dans ${n} j`;
+}
+
+function renderMai(){
+  const zones=Object.keys(ZONES).filter(z=>z!=='Routines').sort((a,b)=>a.localeCompare(b,'fr'));
+  const all=TASKS.filter(t=>t.z!=='Routines');
+  const tot=avgFresh(all);
+  let html=`<div class="hero">
+    <div class="hero-l">Ma maison</div>
+    <div class="big" style="margin-top:.2rem">${tot} %</div>
+    <div class="bar"><div class="${tot<50?'low':''}" style="width:${tot}%"></div></div>
+  </div><div class="list">`;
+
+  const block=(z,withBar)=>{
+    const tasks=TASKS.filter(t=>t.z===z);
+    const p=avgFresh(tasks),k='z'+z,isOpen=open.has(k);
+    let h=`<div class="row"><div class="room" onclick="toggleOpen('${k}')" style="cursor:pointer">
+      <div class="room-top" style="${withBar?'':'margin-bottom:0'}">${icon(z)}<span class="row-n">${z}</span>
+      ${withBar?`<span class="room-pct">${p} %</span>`:''}<i class="ti ti-chevron-down arr${isOpen?' open':''}"></i></div>
+      ${withBar?`<div class="bar"><div class="${p<50?'low':''}" style="width:${p}%"></div></div>`:''}
+    </div>`;
+    if(isOpen){
+      h+=`<div class="row-body">`;
+      for(const t of tasks){
+        h+=`<div class="mini"><div class="tb"><div class="tn">${t.n}</div><div class="tm">${FL[t.f]} · ${t.d} min</div></div>
+          <div class="mini-r">${lastTxt(t)}${t.f!=='Q'?`<br>prochaine : ${nextTxt(t)}`:''}</div></div>`;
+      }
+      h+=`</div>`;
+    }
+    return h+`</div>`;
+  };
+  for(const z of zones)html+=block(z,true);
+  html+=`</div><div class="s-hd">Routines</div><div class="list">${block('Routines',false)}</div>`;
+  document.getElementById('pane-mai').innerHTML=html;
+}
+
+loadS();seed();render();
+</script>
+</body>
+</html>
