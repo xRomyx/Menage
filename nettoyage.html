@@ -92,6 +92,14 @@ body{font-family:'Nunito',system-ui,sans-serif;color:var(--text)}
 .room-top{display:flex;align-items:center;gap:.75rem;margin-bottom:.55rem}
 .room-pct{font-size:.9rem;font-weight:800;color:var(--sub)}
 .big{font-size:2rem;font-weight:800;color:var(--sage-tx);line-height:1}
+.mini{cursor:pointer}
+.mini.done .mini-r{opacity:.7}
+.chk.sm{width:22px;height:22px;min-width:22px;font-size:13px}
+.mark{display:flex;align-items:center;gap:.5rem;padding:.1rem 0 .6rem}
+.mark .seg{flex:1}
+.mark .seg button{min-height:34px;font-size:.8rem}
+.all{border:none;background:var(--sage-lt);color:var(--sage-tx);font-family:inherit;font-weight:700;font-size:.8rem;border-radius:10px;padding:0 .75rem;min-height:34px;cursor:pointer;white-space:nowrap}
+.more{width:100%;min-height:46px;border:1.5px dashed var(--bdr);border-radius:16px;background:none;font-family:inherit;font-size:.9rem;font-weight:700;color:var(--sage);cursor:pointer}
 </style>
 </head>
 <body>
@@ -133,6 +141,7 @@ const TASKS=[
   {id:'cor_sol',z:'Couloirs RDC',n:'Laver le sol',f:'M',d:10,s:true},
   {id:'coh_asp',z:'Couloir haut',n:'Aspirer',f:'H',d:5,s:false},
   {id:'coh_dep',z:'Couloir haut',n:'Dépoussiérer',f:'D',d:5,s:true},
+  {id:'coh_esc',z:'Couloir haut',n:'Aspirer les escaliers',f:'H',d:10,s:false},
   {id:'coh_sol',z:'Couloir haut',n:'Laver le sol',f:'M',d:5,s:true},
   {id:'cui_sur',z:'Cuisine',n:'Nettoyer les surfaces',f:'H',d:10,s:true},
   {id:'cui_evi',z:'Cuisine',n:"Nettoyer l'évier",f:'H',d:5,s:true},
@@ -198,7 +207,7 @@ const DAYS_FR=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'
 const QMIN=TASKS.filter(t=>t.f==='Q').reduce((s,t)=>s+t.d,0);
 
 // Le rythme (refWeek/refMode) est demandé au premier lancement et reste sur le téléphone.
-let S={refWeek:null,refMode:null,over:{},flexDay:5,lastDone:{},prev:{},plan:{},planDay:null,planKey:null,seeded:false};
+let S={refWeek:null,refMode:null,over:{},flexDay:5,lastDone:{},prev:{},plan:{},planDay:null,planKey:null,seeded:false,known:[]};
 
 function loadS(){try{const d=JSON.parse(localStorage.getItem('menage2'));if(d)S={...S,...d};}catch(e){}
   if(S.flexDay!==5&&S.flexDay!==6)S.flexDay=5;
@@ -232,7 +241,6 @@ function nextDue(id){
   return ld?addDays(ld,FD[t.f]):'2000-01-01';
 }
 function doneToday(id){return S.lastDone[id]===today()}
-function doneSince(id,d){const ld=S.lastDone[id];return!!ld&&ld>=d}
 
 // Fraîcheur : 100 % juste après, 50 % à l'échéance, 0 % à deux fois la période.
 function fresh(t){
@@ -260,14 +268,46 @@ function seed(){
   S.seeded=true;S.planDay=null;saveS();
 }
 
-function toggle(id){
-  if(doneToday(id)){
+// Une tâche ajoutée plus tard démarre à mi-période plutôt qu'à "jamais fait".
+function syncNew(){
+  const known=new Set(S.known||[]),tod=today();
+  for(const t of TASKS){
+    if(known.has(t.id)||t.f==='Q'||S.lastDone[t.id])continue;
+    S.lastDone[t.id]=addDays(tod,-Math.floor(FD[t.f]/2));
+    S.planDay=null;
+  }
+  S.known=TASKS.map(t=>t.id);saveS();
+}
+
+// Coché si fait à cette date ou plus récemment ; toucher à nouveau annule la dernière coche.
+function isTicked(id,date){const ld=S.lastDone[id];return!!ld&&ld>=date}
+function tick(id,date){
+  if(isTicked(id,date)){
     if(S.prev[id])S.lastDone[id]=S.prev[id];else delete S.lastDone[id];
     delete S.prev[id];
   }else{
     if(S.lastDone[id])S.prev[id]=S.lastDone[id];
-    S.lastDone[id]=today();
+    S.lastDone[id]=date;
   }
+}
+function toggle(id){tick(id,today());saveS();render();}
+
+// Coche faite hors de la liste du jour : la tâche quitte les jours suivants.
+function prune(id){
+  const tod=today();
+  for(const d of Object.keys(S.plan)){
+    if(d<tod||(d===tod&&doneToday(id)))continue;
+    S.plan[d]=S.plan[d].filter(x=>x!==id);
+    if(!S.plan[d].length)delete S.plan[d];
+  }
+}
+function tickExtra(id,date){tick(id,date);if(isTicked(id,date))prune(id);saveS();render();}
+let markDay='auj';
+function markDate(){return markDay==='hier'?addDays(today(),-1):today()}
+function setMarkDay(v){markDay=v;render();}
+function tickAll(z){
+  const d=markDate();
+  for(const t of TASKS.filter(t=>t.z===z))if(!isTicked(t.id,d)){tick(t.id,d);prune(t.id);}
   saveS();render();
 }
 
@@ -353,13 +393,32 @@ function setFlex(v){S.flexDay=v;saveS();render();}
 
 function icon(z,sm){const c=ZONES[z];return`<span class="ic${sm?' sm':''}" style="--h:${c.h}"><i class="ti ti-${c.i}"></i></span>`}
 
-function taskHtml(t){
+function chk(on,sm){return`<span class="chk${sm?' sm':''}${on?' on':''}">${on?'<i class="ti ti-check"></i>':''}</span>`}
+
+function taskHtml(t,action,meta){
   const d=doneToday(t.id);
-  return`<div class="task${d?' done':''}" onclick="toggle('${t.id}')">
+  return`<div class="task${d?' done':''}" onclick="${action||`toggle('${t.id}')`}">
     ${icon(t.z)}
-    <div class="tb"><div class="tn">${t.n}</div><div class="tm">${t.z} · ${t.d} min</div></div>
-    <span class="chk${d?' on':''}">${d?'<i class="ti ti-check"></i>':''}</span>
+    <div class="tb"><div class="tn">${t.n}</div><div class="tm">${meta||t.z+' · '+t.d+' min'}</div></div>
+    ${chk(d)}
   </div>`;
+}
+
+let moreOpen=false;
+function toggleMore(){moreOpen=!moreOpen;render();}
+function moreHtml(){
+  const tod=today(),quiet=budgetOf(tod).silent;
+  const next=[];
+  for(const d of windowDays().slice(1))for(const id of (S.plan[d]||[])){
+    const t=byId(id);if(t&&!(quiet&&!t.s))next.push({t,d});
+  }
+  let h=`<button class="more" onclick="toggleMore()">${moreOpen?'Masquer':"J'ai encore du temps"}</button>`;
+  if(moreOpen){
+    h+=next.length
+      ?`<div class="list">${next.slice(0,10).map(({t,d})=>taskHtml(t,`tickExtra('${t.id}',today())`,`Prévu ${DAYS_FR[diffDays(monday(d),d)].toLowerCase()} · ${t.z} · ${t.d} min`)).join('')}</div>`
+      :`<div class="empty">Rien d'autre de prévu cette semaine${quiet?' sans bruit':''}.</div>`;
+  }
+  return h;
 }
 
 function renderAuj(){
@@ -369,11 +428,13 @@ function renderAuj(){
   const dateStr=cap(dt.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}));
   const hello=new Date().getHours()<18?'Bonjour Romy':'Bonsoir Romy';
 
-  const list=[...TASKS.filter(t=>t.f==='Q'),...(S.plan[tod]||[]).map(byId).filter(Boolean)];
+  const planned=S.plan[tod]||[];
+  const list=[...TASKS.filter(t=>t.f==='Q'),...planned.map(byId).filter(Boolean)];
+  const extras=TASKS.filter(t=>t.f!=='Q'&&doneToday(t.id)&&!planned.includes(t.id));
   const todo=list.filter(t=>!doneToday(t.id));
-  const done=list.filter(t=>doneToday(t.id));
+  const done=[...list.filter(t=>doneToday(t.id)),...extras];
   const mins=todo.reduce((s,t)=>s+t.d,0);
-  const pct=list.length?Math.round(done.length/list.length*100):0;
+  const pct=list.length+extras.length?Math.round(done.length/(list.length+extras.length)*100):0;
 
   let html=`<div><div class="greet-d">${dateStr}</div><div class="greet">${hello}</div></div>
   <div class="hero">
@@ -383,7 +444,8 @@ function renderAuj(){
       :`<div class="hero-v">Tout est fait</div><div class="hero-s">Profite de ta ${we?'journée':'soirée'}</div>`}
     <div class="bar"><div style="width:${pct}%"></div></div>
   </div>
-  <div class="list">${[...todo,...done].map(taskHtml).join('')}</div>`;
+  <div class="list">${[...todo,...done].map(t=>taskHtml(t)).join('')}</div>
+  ${moreHtml()}`;
 
   document.getElementById('pane-auj').innerHTML=html;
 }
@@ -411,9 +473,11 @@ function dayRow(date){
   if(isOpen&&tasks.length){
     h+=`<div class="row-body">`;
     for(const t of tasks){
-      const d=doneSince(t.id,date);
-      h+=`<div class="mini${d?' done':''}">${icon(t.z,true)}<div class="tb"><div class="tn">${t.n}</div><div class="tm">${t.z}</div></div><span class="mini-r">${d?'<b>fait</b>':t.d+' min'}</span></div>`;
+      const d=isToday&&doneToday(t.id);
+      const act=isToday?`toggle('${t.id}')`:`tickExtra('${t.id}',today())`;
+      h+=`<div class="mini${d?' done':''}" onclick="${act}">${icon(t.z,true)}<div class="tb"><div class="tn">${t.n}</div><div class="tm">${t.z} · ${t.d} min</div></div>${chk(d,true)}</div>`;
     }
+    if(!isToday)h+=`<p class="note" style="padding-top:.3rem">Cocher ici compte comme fait aujourd'hui.</p>`;
     h+=`</div>`;
   }
   return h+`</div>`;
@@ -476,10 +540,19 @@ function renderMai(){
       ${withBar?`<div class="bar"><div class="${p<50?'low':''}" style="width:${p}%"></div></div>`:''}
     </div>`;
     if(isOpen){
-      h+=`<div class="row-body">`;
+      const md=markDate(),allDone=tasks.every(t=>isTicked(t.id,md));
+      h+=`<div class="row-body">
+        <div class="mark"><span class="lbl" style="margin:0">Fait</span>
+          <div class="seg">
+            <button class="${markDay==='auj'?'on':''}" onclick="setMarkDay('auj')">Aujourd'hui</button>
+            <button class="${markDay==='hier'?'on':''}" onclick="setMarkDay('hier')">Hier</button>
+          </div>
+          ${allDone?'':`<button class="all" onclick="tickAll('${z}')">Tout cocher</button>`}
+        </div>`;
       for(const t of tasks){
-        h+=`<div class="mini"><div class="tb"><div class="tn">${t.n}</div><div class="tm">${FL[t.f]} · ${t.d} min</div></div>
-          <div class="mini-r">${lastTxt(t)}${t.f!=='Q'?`<br>prochaine : ${nextTxt(t)}`:''}</div></div>`;
+        const on=isTicked(t.id,md);
+        h+=`<div class="mini${on?' done':''}" onclick="tickExtra('${t.id}','${md}')"><div class="tb"><div class="tn">${t.n}</div><div class="tm">${FL[t.f]} · ${t.d} min</div></div>
+          <div class="mini-r">${lastTxt(t)}${t.f!=='Q'?`<br>prochaine : ${nextTxt(t)}`:''}</div>${chk(on,true)}</div>`;
       }
       h+=`</div>`;
     }
@@ -490,7 +563,7 @@ function renderMai(){
   document.getElementById('pane-mai').innerHTML=html;
 }
 
-loadS();seed();render();
+loadS();seed();syncNew();render();
 </script>
 </body>
 </html>
